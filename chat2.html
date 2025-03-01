@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat2HTML - Mixtral</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        input, button { margin: 10px; padding: 8px; font-size: 16px; }
+        #response { margin-top: 20px; font-weight: bold; color: #333; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h2>Chat2HTML - Mixtral</h2>
+
+    <!-- API Key Input (Stored in Browser) -->
+    <button onclick="setApiKey()">Set API Key</button>
+
+    <!-- Chat Input -->
+    <input type="text" id="userInput" placeholder="Type a message...">
+    <button onclick="sendMessage()">Send</button>
+
+    <!-- Chat Response -->
+    <p id="response">Waiting for input...</p>
+
+    <script>
+        // Ask for API key if it's missing
+        function setApiKey() {
+            let key = prompt("Enter your Mixtral API Key:");
+            if (key) {
+                localStorage.setItem("mixtral_api_key", key);
+                alert("✅ API Key saved! You won’t have to enter it again.");
+            } else {
+                alert("❌ Invalid API key. Please try again.");
+            }
+        }
+
+        // Automatically ask for API key if it's missing
+        if (!localStorage.getItem("mixtral_api_key")) {
+            setApiKey();
+        }
+
+        // Send user message to Mixtral API
+        function sendMessage() {
+            let userMessage = document.getElementById("userInput").value;
+            let apiKey = localStorage.getItem("mixtral_api_key");
+
+            if (!apiKey) {
+                document.getElementById("response").innerHTML = "<span class='error'>⚠️ No API Key set. Click 'Set API Key' first.</span>";
+                return;
+            }
+
+            if (!userMessage.trim()) {
+                document.getElementById("response").innerHTML = "<span class='error'>⚠️ Please enter a message.</span>";
+                return;
+            }
+
+            document.getElementById("response").innerText = "⏳ Waiting for response...";
+
+            fetch("https://mars.chub.ai/mixtral/v1", {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + apiKey
+                },
+                body: JSON.stringify({
+                    messages: [{ role: "user", content: userMessage }]
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status} - ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.choices && data.choices.length > 0) {
+                    document.getElementById("response").innerText = "🗨️ Mixtral: " + data.choices[0].message.content;
+                } else {
+                    document.getElementById("response").innerHTML = "<span class='error'>⚠️ No response from Mixtral.</span>";
+                }
+            })
+            .catch(error => {
+                document.getElementById("response").innerHTML = `<span class='error'>❌ Error: ${error.message}</span>`;
+                console.error("Error:", error);
+            });
+        }
+    </script>
+</body>
+</html>
