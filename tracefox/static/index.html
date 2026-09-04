@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TraceFox</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+<header>
+  <div class="brand"><span class="mark">◉</span><strong>TraceFox</strong><span class="tag">local username archaeology</span></div>
+  <div id="ollamaStatus" class="pill">Checking Ollama…</div>
+</header>
+
+<main>
+  <section class="hero card">
+    <h1>Find the breadcrumbs. <span>Don't confuse them for one person.</span></h1>
+    <p>Search public username profiles across the community-maintained WhatsMyName dataset, then let one of your local Ollama models cluster the matches without pretending every shared handle is the same human.</p>
+    <div class="searchrow">
+      <input id="username" autocomplete="off" placeholder="username, e.g. wondervaylor" />
+      <button id="searchBtn">Search</button>
+    </div>
+    <div class="options">
+      <label>Ollama model <select id="model"></select></label>
+      <label>Concurrency <input id="concurrency" type="number" min="1" max="80" value="30" /></label>
+      <label class="check"><input id="refresh" type="checkbox" /> refresh site definitions</label>
+    </div>
+  </section>
+
+  <section id="progressCard" class="card hidden">
+    <div class="row"><strong id="progressText">Scanning…</strong><span id="progressNum"></span></div>
+    <div class="bar"><div id="barFill"></div></div>
+    <div id="liveFound" class="muted"></div>
+  </section>
+
+  <section id="summary" class="stats hidden"></section>
+
+  <section id="analysisCard" class="card hidden">
+    <div class="row"><h2>Local Ollama correlation</h2><button id="analyzeBtn" class="secondary">Analyze matches</button></div>
+    <div id="analysis"></div>
+  </section>
+
+  <section id="toolbar" class="toolbar hidden">
+    <div>
+      <button class="filter active" data-filter="found">Found</button>
+      <button class="filter" data-filter="unknown">Uncertain</button>
+      <button class="filter" data-filter="error">Errors</button>
+      <button class="filter" data-filter="all">All</button>
+    </div>
+    <div id="exports"></div>
+  </section>
+
+  <section id="results" class="grid"></section>
+</main>
+
+<footer>TraceFox only checks publicly reachable profile URLs. Same username ≠ same person.</footer>
+<script src="/static/app.js"></script>
+</body>
+</html>
