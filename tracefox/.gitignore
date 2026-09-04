@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+data/wmn-data.json
+data/history/*.json
+!data/history/.gitkeep
