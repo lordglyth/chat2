@@ -1,0 +1,11 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+data/*.db
+data/uploads/
+data/generated/
+tokens/
+google_oauth*.json
+client_secret*.json
+*.log
