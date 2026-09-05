@@ -89,7 +89,7 @@ def get_prefs():
 def save_content(kind: str, body: str, title: str = "", media_path: str | None = None, metadata: dict | None = None, status: str="draft") -> str:
     i=uid()
     with connect() as con:
-        con.execute("INSERT INTO content VALUES(?,?,?,?,?,?,?,?,?)",(i,kind,title,body,media_path,status,jdump(metadata or {}),now()))
+        con.execute("INSERT INTO content VALUES(?,?,?,?,?,?,?,?)",(i,kind,title,body,media_path,status,jdump(metadata or {}),now()))
     return i
 
 def get_content(content_id: str):
