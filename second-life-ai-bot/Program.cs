@@ -27,6 +27,7 @@ if (!string.IsNullOrWhiteSpace(ownerIdText) && !UUID.TryParse(ownerIdText, out o
     return 1;
 }
 
+var follower = new OwnerFollower(client, ownerId);
 var shutdown = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
 client.Network.LoginProgress += (_, e) => Console.WriteLine($"[LOGIN] {e.Status}: {e.Message}");
@@ -45,12 +46,12 @@ Console.CancelKeyPress += (_, e) =>
     shutdown.TrySetResult(true);
 };
 
-Console.WriteLine("Second Life AI Bot 1.0");
+Console.WriteLine("Second Life AI Bot 1.1");
 Console.WriteLine($"Provider: {AiClient.Name(ai.Provider)}");
 Console.WriteLine($"Local chat AI: {(localChatEnabled ? "ON" : "OFF")}");
 Console.WriteLine("Logging in...");
 
-var loginParams = client.Network.DefaultLoginParams(firstName, lastName, password, "SecondLifeAIBot", "1.0.0");
+var loginParams = client.Network.DefaultLoginParams(firstName, lastName, password, "SecondLifeAIBot", "1.1.0");
 using var loginCts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
 
 try
@@ -68,10 +69,12 @@ catch (OperationCanceledException)
     return 1;
 }
 
+follower.Start();
 Console.WriteLine($"Logged in as {firstName} {lastName} in {client.Network.CurrentSim?.Name ?? "unknown"}.");
 Console.WriteLine("Ctrl+C to log out.");
 await shutdown.Task;
 
+follower.Stop();
 if (client.Network.Connected)
     client.Network.Logout();
 return 0;
@@ -153,10 +156,43 @@ string HandleAdminCommand(UUID sender, string raw)
     switch (cmd)
     {
         case "!help":
-            return "Owner commands: !status, !ai on|off, !provider OLLAMA|SOJI|AUTO, !model <name>, !action none|sit|stand|dance|fly|walk|jump";
+            return "Owner commands: !status, !follow on|off, !follow distance <meters>, !ai on|off, !provider OLLAMA|SOJI|AUTO, !model <name>, !action none|sit|stand|dance|fly|walk|jump";
 
         case "!status":
-            return $"AI={(aiEnabled ? "ON" : "OFF")}; provider={AiClient.Name(ai.Provider)}; ollama_model={ai.OllamaModel}; soji_model={ai.SojiModel}; region={client.Network.CurrentSim?.Name ?? "unknown"}; pos={client.Self.SimPosition}";
+            return $"AI={(aiEnabled ? "ON" : "OFF")}; provider={AiClient.Name(ai.Provider)}; follow={(follower.Enabled ? "ON" : "OFF")}; owner_visible={(follower.TargetVisible ? "YES" : "NO")}; follow_distance={follower.FollowDistance:0.0}m; ollama_model={ai.OllamaModel}; soji_model={ai.SojiModel}; region={client.Network.CurrentSim?.Name ?? "unknown"}; pos={client.Self.SimPosition}";
+
+        case "!follow":
+            if (pieces.Length < 2)
+                return $"Follow is {(follower.Enabled ? "ON" : "OFF")} at {follower.FollowDistance:0.0}m. Usage: !follow on|off OR !follow distance <meters>.";
+
+            if (pieces[1].Equals("on", StringComparison.OrdinalIgnoreCase))
+            {
+                follower.SetEnabled(true);
+                return $"Following you at {follower.FollowDistance:0.0}m.";
+            }
+
+            if (pieces[1].Equals("off", StringComparison.OrdinalIgnoreCase))
+            {
+                follower.SetEnabled(false);
+                return "Following is off.";
+            }
+
+            if (pieces[1].Equals("distance", StringComparison.OrdinalIgnoreCase))
+            {
+                if (pieces.Length < 3 || !float.TryParse(pieces[2], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var requestedDistance))
+                    return "Usage: !follow distance <meters> (1.5 to 20).";
+
+                var actual = follower.SetDistance(requestedDistance);
+                return $"Follow distance set to {actual:0.0}m.";
+            }
+
+            if (float.TryParse(pieces[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var shortDistance))
+            {
+                var actual = follower.SetDistance(shortDistance);
+                return $"Follow distance set to {actual:0.0}m.";
+            }
+
+            return "Usage: !follow on|off OR !follow distance <meters>.";
 
         case "!ai":
             if (pieces.Length < 2) return "Usage: !ai on|off";
