@@ -1,6 +1,6 @@
 # Second Life AI Bot
 
-A transparent Second Life bot controlled by either a **local Ollama model** or **Soji**. It uses LibreMetaverse 3.1.4 to log a bot avatar into Second Life, listens for IMs, asks the selected AI what to say/do, then executes only a small allowlisted set of avatar actions.
+A transparent Second Life bot controlled by either a **local Ollama model** or **Soji**. It uses LibreMetaverse 3.1.4 to log a bot avatar into Second Life, listens for IMs, can follow its owner around, asks the selected AI what to say/do, then executes only a small allowlisted set of avatar actions.
 
 ## Provider rules
 
@@ -40,6 +40,32 @@ AI_PROVIDER=OLLAMA
 
 Then run `.\run.ps1` again.
 
+## Owner follow mode
+
+The bot follows the avatar identified by `OWNER_UUID`. Follow mode starts automatically by default:
+
+```ini
+FOLLOW_OWNER_ON_START=true
+FOLLOW_DISTANCE_METERS=3.0
+FOLLOW_UPDATE_MS=750
+```
+
+It repeatedly locates your avatar in the simulators the client can currently see and uses Second Life simulator autopilot to move toward your global position. Once it is within `FOLLOW_DISTANCE_METERS`, it cancels autopilot and waits until you move away again.
+
+Normal region-border crossings are handled using global region coordinates. If you teleport far enough away that the bot can no longer see your avatar in any connected simulator, it stops moving and waits to reacquire you rather than guessing where you went.
+
+Owner-only IM controls:
+
+```text
+!follow on
+!follow off
+!follow distance 5
+!follow 5
+!status
+```
+
+The follow distance is clamped between 1.5 and 20 meters. Changes made by IM last for the current run; edit `.env` to make a new distance the startup default.
+
 ## What the AI can control
 
 The AI returns a tiny JSON action envelope. The program itself validates the action and allows only:
@@ -52,7 +78,7 @@ The AI returns a tiny JSON action envelope. The program itself validates the act
 - `walk`
 - `jump`
 
-Unsupported actions are blocked rather than executed.
+Unsupported actions are blocked rather than executed. Follow mode itself is deterministic code tied to `OWNER_UUID`; the AI does not choose who the bot follows.
 
 ## Owner-only IM commands
 
@@ -61,6 +87,9 @@ Set `OWNER_UUID` to your avatar UUID. Then IM the bot:
 ```text
 !help
 !status
+!follow on
+!follow off
+!follow distance 3
 !ai on
 !ai off
 !provider OLLAMA
@@ -71,7 +100,7 @@ Set `OWNER_UUID` to your avatar UUID. Then IM the bot:
 !action stand
 ```
 
-Provider/model changes made by IM last only for the current run; `.env` remains the source of truth when the bot restarts.
+Provider/model/follow changes made by IM last only for the current run; `.env` remains the source of truth when the bot restarts.
 
 ## Nearby chat
 
