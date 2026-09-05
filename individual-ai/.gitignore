@@ -3,6 +3,7 @@
 __pycache__/
 *.py[cod]
 data/*.db
+data/.vault.key
 data/uploads/
 data/generated/
 tokens/
