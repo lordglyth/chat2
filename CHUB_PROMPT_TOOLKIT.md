@@ -50,6 +50,8 @@ The default preset categories include:
 
 Use the JSON in `chub-prompt-presets.json` by pasting it into the import textarea and clicking `Import JSON`.
 
+The repo now includes a converted manual-export preset named `manual-exported-roleplay`, which preserves the provided Chub config values in the same modular prompt format the userscript expects. It includes the tuned settings block, the roleplay main prompt, the impersonation writing style instruction, and the empty assistant-prefill/jailbreak fields as optional toggles.
+
 ## Perplexity research pack
 
 The bundled `perplexity-research` preset is designed to handle research and offload work into a reusable workflow:
